@@ -60,8 +60,6 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler(Throwable.class)
 	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
 	public ResponseEntity<ProblemDetail> handleThrowableException(Throwable ex) {
-		ex.printStackTrace();
-		logger.error(ex.getCause().toString());
 		logger.error(ex.getLocalizedMessage());
 
 		ProblemDetail problem = ProblemDetail.forStatusAndDetail(
