@@ -2,7 +2,7 @@
 
 ## API REST para cadastro de produtos e configuração de cardápios
 
-**Projeto em produção:** https:// 
+**Projeto em produção:** https://cardapio-api-production-d4a2.up.railway.app/swagger-ui.html
 
 
 ### Destaques
