@@ -1,13 +1,19 @@
-# lab-padroes-projeto-spring
+# Cardapio API
 
-## API REST para cadastro de produtos e configuração de cardápios usando padrões de projeto num projeto Spring Boot
+## API REST para cadastro de produtos e configuração de cardápios
 
-### Padrões utilizados
-* Facade
-* Strategy
-* Repository
+
+### Destaques
+- OpenAPI Documentation com exemplos de dados de entrada e saída
+- Tratamento de exceções global
+- API não expõe classes do dominio (utiliza models - "DTOs")
+
 
 ### Controllers
+
+**CategoriaController**
+- Permite o cadastro e listagem de categorias de produtos
+
 **ProdutoController**
 - Permite o cadastro e listagem de produtos
     
