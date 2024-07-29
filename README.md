@@ -2,6 +2,7 @@
 
 ## API REST para cadastro de produtos e configuração de cardápios
 
+**Projeto em produção:** https:// 
 
 ### Destaques
 - OpenAPI Documentation com exemplos de dados de entrada e saída
