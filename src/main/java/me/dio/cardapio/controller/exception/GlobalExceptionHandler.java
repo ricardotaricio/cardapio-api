@@ -7,65 +7,80 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.WebRequest;
 
 import me.dio.cardapio.service.exception.BusinessException;
 import me.dio.cardapio.service.exception.ResourceNotFoundException;
 
 @RestControllerAdvice
-public class GlobalExceptionHandler {
+@ControllerAdvice
+public class GlobalExceptionHandler { //extends ResponseEntityExceptionHandler {
 
 	Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 	
 	@ExceptionHandler(ResourceNotFoundException.class)
 	@ResponseStatus(HttpStatus.NOT_FOUND)
-	public ResponseEntity<ProblemDetail> handleResourceNotFoundException(ResourceNotFoundException ex) {
-		ProblemDetail problem = ProblemDetail.forStatusAndDetail(
-				HttpStatus.NOT_FOUND,
-				ex.getLocalizedMessage());
-		return ResponseEntity.of(problem).build();
+	public ProblemDetail handleResourceNotFoundException(ResourceNotFoundException ex, WebRequest request) {
+		return createProblem(ex, HttpStatus.NOT_FOUND, request);
 	}
 	
 	@ExceptionHandler(BusinessException.class)
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
-	public ResponseEntity<ProblemDetail> handleBusinessException(BusinessException ex) {
-		ProblemDetail problem = ProblemDetail.forStatusAndDetail(
-				HttpStatus.BAD_REQUEST,
-				ex.getLocalizedMessage());
-		return ResponseEntity.of(problem).build();
+	public ProblemDetail handleBusinessException(BusinessException ex, WebRequest request) {
+		return createProblem(ex, HttpStatus.BAD_REQUEST, request);
 	}
 	
 	@ExceptionHandler(MethodArgumentNotValidException.class)
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
-	public ResponseEntity<ProblemDetail> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
-
-		ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
-
+	public ProblemDetail handleMethodArgumentNotValidException(MethodArgumentNotValidException ex, WebRequest request) {
+		logException(ex);
+		
 		Map<String, Object> errors = new HashMap<>();
+		Map<String, Object> property = new HashMap<String, Object>();
+
 	    ex.getBindingResult().getAllErrors().forEach((error) -> {
 	        String fieldName = ((FieldError) error).getField();
 	        String errorMessage = error.getDefaultMessage();
 	        errors.put(fieldName, errorMessage);
 	    });
-		
-	    problem.setProperties(errors);
-		return ResponseEntity.of(problem).build();
+
+	    property.put("errors", errors);
+	    
+	    ex.getBody().setProperties(property);
+
+		return ex.getBody();
+	}
+	
+	@ExceptionHandler(HttpMessageNotReadableException.class)
+	@ResponseStatus(HttpStatus.BAD_REQUEST)
+	public ProblemDetail handleHttpMessageNotReadableException(HttpMessageNotReadableException ex, WebRequest request) {
+		return createProblem(ex, HttpStatus.BAD_REQUEST, request);
 	}
 	
 	@ExceptionHandler(Throwable.class)
 	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-	public ResponseEntity<ProblemDetail> handleThrowableException(Throwable ex) {
-		logger.error(ex.getLocalizedMessage());
+	public ProblemDetail handleThrowableException(Throwable ex, WebRequest request) {
+		return createProblem(ex, HttpStatus.INTERNAL_SERVER_ERROR, request);
+	}
+	
+	private ProblemDetail createProblem(Throwable ex, HttpStatus httpStatus, WebRequest request) {
+		logException(ex);
 
 		ProblemDetail problem = ProblemDetail.forStatusAndDetail(
-				HttpStatus.INTERNAL_SERVER_ERROR,
+				httpStatus,
 				ex.getLocalizedMessage());
-		problem.setTitle(ex.getLocalizedMessage());
-		return ResponseEntity.of(problem).build();
+
+		return problem;
+	}
+	
+	private void logException(Throwable ex) {
+		logger.error("Exception: ", ex);
 	}
 }
